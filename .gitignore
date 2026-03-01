@@ -12,6 +12,9 @@ test_images/
 *.bmp
 *.webp
 
+# Allow screenshots for README
+!screenshots/**
+
 # Editor
 *.swp
 *.swo

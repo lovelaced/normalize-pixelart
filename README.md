@@ -1,69 +1,138 @@
-# pixfix
+<div align="center">
 
-Cleans up AI-generated pixel art — snap to grid, remove AA fuzz, reduce to a palette, remove backgrounds.
+```
+        _       __ _
+  _ __ (_)_  __/ _(_)_  __
+ | '_ \| \ \/ / |_| \ \/ /
+ | |_) | |>  <|  _| |>  <
+ | .__/|_/_/\_\_| |_/_/\_\
+ |_|
+```
 
-AI image generators produce "pixel art" riddled with mixels, anti-aliasing artifacts, and colors that don't snap to any grid. pixfix takes that messy output and produces clean, uniform pixel art while preserving the vibrancy and character of the original.
+**Clean up AI-generated pixel art.**<br>
+Snap to grid. Remove AA fuzz. Reduce to a palette. Remove backgrounds.
 
-![pixfix welcome screen](screenshots/welcome.png)
+[![CI](https://github.com/lovelaced/normalize-pixelart/actions/workflows/ci.yml/badge.svg)](https://github.com/lovelaced/normalize-pixelart/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/lovelaced/normalize-pixelart?include_prereleases&label=release)](https://github.com/lovelaced/normalize-pixelart/releases)
 
-![pixfix settings with live preview](screenshots/settings.png)
+[Download](#install) · [Features](#features) · [CLI Reference](#cli-reference) · [How It Works](#how-it-works)
+
+</div>
+
+<br>
+
+<p align="center">
+  <img src="screenshots/welcome.png" width="720" alt="pixfix welcome screen">
+</p>
+
+<p align="center">
+  <img src="screenshots/settings.png" width="720" alt="pixfix settings with live preview">
+</p>
+
+<br>
+
+---
+
+AI image generators produce "pixel art" riddled with **mixels** (mixed-resolution pixels), anti-aliasing artifacts, and colors that don't snap to any grid. pixfix takes that messy output and produces clean, uniform pixel art — while preserving the vibrancy and character of the original.
+
+Available as a **native desktop app** (macOS, Windows, Linux) and a **CLI tool** for scripting and automation.
+
+---
+
+## Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Desktop App**
+
+- Side-by-side original / processed preview
+- Live settings — tweak parameters, see results instantly
+- Grid detection diagnostics and color histograms
+- 3000+ palettes via Lospec, or load custom `.hex` files
+- Sprite sheet auto-splitter with GIF animation export
+- Batch processing — drag in a folder, process everything
+- Full keyboard navigation
+
+</td>
+<td width="50%" valign="top">
+
+**Processing Pipeline**
+
+- Auto-detect pixel grid size and phase offset
+- Snap mode — enforces clean grid at original resolution
+- Multiple downscale modes (center-weighted, majority-vote, center-pixel)
+- OKLAB color quantization — perceptually accurate palette matching
+- Anti-aliasing removal via triangle inequality in OKLAB space
+- Background removal — flood-fill or global replacement
+- Output resize — upscale for game engines (2x, 3x...)
+
+</td>
+</tr>
+</table>
+
+---
+
+## Install
+
+### Desktop App
+
+Download the latest release for your platform:
+
+<div align="center">
+
+| Platform | Download |
+|:---------|:---------|
+| **macOS** (Apple Silicon) | [`.dmg`](https://github.com/lovelaced/normalize-pixelart/releases/latest) |
+| **macOS** (Intel) | [`.dmg`](https://github.com/lovelaced/normalize-pixelart/releases/latest) |
+| **Windows** | [`.msi`](https://github.com/lovelaced/normalize-pixelart/releases/latest) · [`.exe` installer](https://github.com/lovelaced/normalize-pixelart/releases/latest) |
+| **Linux** | [`.deb`](https://github.com/lovelaced/normalize-pixelart/releases/latest) · [`.AppImage`](https://github.com/lovelaced/normalize-pixelart/releases/latest) |
+
+</div>
+
+### CLI
+
+```bash
+# From source (requires Rust 1.70+)
+git clone https://github.com/lovelaced/normalize-pixelart.git
+cd normalize-pixelart
+cargo build --release
+
+# Binary at target/release/normalize-pixelart
+```
+
+Pre-built CLI binaries for all platforms are also available on the [Releases](https://github.com/lovelaced/normalize-pixelart/releases) page.
+
+---
 
 ## Desktop App
-
-**pixfix** is a native desktop app (macOS, Windows, Linux) with a full GUI for interactive pixel art cleanup. No terminal required.
-
-- **Side-by-side preview** — see original and processed images instantly
-- **Live settings** — tweak every pipeline parameter and see results update in real time
-- **Diagnostics** — visualize grid detection scores and color histograms
-- **3000+ palettes** — built-in palettes, Lospec integration, custom `.hex` files, or auto-extract
-- **Sprite sheets** — auto-split AI-generated sheets (white background), normalize each tile, reassemble
-- **GIF export** — animate sprite sheet rows or the entire sheet with configurable framerate
-- **Batch processing** — drag in a folder of images and process them all at once
-- **Keyboard-driven** — full keyboard navigation, or use the mouse
-
-### Install
-
-Download the latest release for your platform from the [Releases](https://github.com/your-username/normalize-pixelart/releases) page:
-
-| Platform | Format |
-|----------|--------|
-| macOS (Apple Silicon) | `.dmg` |
-| macOS (Intel) | `.dmg` |
-| Windows | `.msi` or NSIS installer |
-| Linux | `.deb` or `.AppImage` |
 
 ### Keyboard Shortcuts
 
 | Key | Action |
-|-----|--------|
-| `o` | Open image |
-| `s` | Save processed image |
-| `Space` | Reprocess with current settings |
-| `r` | Reset settings to defaults |
-| `Tab` | Switch tabs |
-| `Esc` | Back to Preview |
+|:---:|--------|
+| <kbd>O</kbd> | Open image |
+| <kbd>S</kbd> | Save processed image |
+| <kbd>Space</kbd> | Reprocess with current settings |
+| <kbd>R</kbd> | Reset settings to defaults |
+| <kbd>Tab</kbd> | Switch tabs |
+| <kbd>Esc</kbd> | Back to Preview |
+
+### Tabs
+
+| Tab | What it does |
+|-----|-------------|
+| **Preview** | Side-by-side original vs. processed |
+| **Settings** | All pipeline parameters with live preview |
+| **Diagnostics** | Grid detection scores, color histogram |
+| **Batch** | Process multiple images at once |
+| **Sheet** | Split sprite sheets, normalize tiles, export GIFs |
 
 ---
 
-## CLI
-
-The `normalize-pixelart` CLI exposes the same pipeline for scripting, automation, and batch workflows.
-
-### Install
-
-```bash
-# From source
-git clone https://github.com/your-username/normalize-pixelart.git
-cd normalize-pixelart
-cargo build --release
-# Binary: target/release/normalize-pixelart
-```
-
-Or grab a pre-built binary from [Releases](https://github.com/your-username/normalize-pixelart/releases).
-
-Requires Rust 1.70+.
-
-### Quick Start
+## CLI Quick Start
 
 ```bash
 # Auto-detect grid, normalize
@@ -80,54 +149,77 @@ normalize-pixelart batch sprites/ output/ --grid-size 4 --palette sweetie-16
 
 # Auto-split an AI sprite sheet
 normalize-pixelart sheet ai_sheet.png --output-dir sprites/
+
+# Interactive terminal editor (Sixel/halfblock preview)
+normalize-pixelart tui input.png
 ```
 
 ---
 
 ## How It Works
 
-A multi-stage pipeline runs on each image:
-
 ```
 Input Image
-    |
-    v
- Grid Detection -----> find NxN pixel grid size and phase offset
-    |
-    v
- AA Removal ----------> remove anti-aliasing artifacts (optional)
-    |
-    v
- Grid Normalize ------> snap/downscale pixels to the detected grid
-    |
-    v
- Quantize ------------> snap colors to a palette (optional)
-    |
-    v
- Background Removal --> make solid backgrounds transparent (optional)
-    |
-    v
- Final Resize --------> scale to output dimensions if needed
-    |
-    v
-Output Image
+    │
+    ▼
+┌─────────────────┐
+│  Grid Detection  │  Find NxN pixel grid size and phase offset
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│   AA Removal     │  Remove anti-aliasing artifacts (optional)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│ Grid Normalize   │  Snap/downscale pixels to the detected grid
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│   Quantize       │  Snap colors to a palette (optional)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│  Background Rm   │  Remove solid backgrounds (optional)
+└────────┬────────┘
+         ▼
+┌─────────────────┐
+│  Final Resize    │  Scale to output dimensions if needed
+└────────┬────────┘
+         ▼
+    Output Image
 ```
 
-### Grid Detection
+<details>
+<summary><strong>Grid Detection</strong></summary>
+<br>
 
-For each candidate grid size, measures **edge alignment**: the ratio of color gradients at grid boundaries vs. non-boundary positions. The correct grid size maximizes this ratio. Phase detection scans all offsets to find where the grid starts — this runs automatically even with `--grid-size` overrides.
+For each candidate grid size (2..max), measures **edge alignment** — the ratio of color gradients at grid boundaries vs. non-boundary positions. The correct grid size maximizes this ratio because all real color transitions align to its grid lines. Phase detection scans all possible offsets to find where the grid starts, even when `--grid-size` is manually set.
 
-### Snap Mode (Default)
+</details>
 
-For each NxN block, finds the dominant color via center-weighted majority voting and paints every pixel in the block with that single color. Eliminates mixels while preserving dithering across blocks. Output stays at the original resolution.
+<details>
+<summary><strong>Snap Mode (Default)</strong></summary>
+<br>
 
-### Color Quantization
+For each NxN block, finds the dominant color via center-weighted majority voting and paints every pixel in the block with that single color. Eliminates mixels and stray pixels while preserving dithering patterns across blocks (adjacent blocks can still have different colors). The output stays at the original resolution.
 
-All color operations use **OKLAB color space** for perceptual accuracy — k-means clustering produces vibrant centroids, palette snapping picks the closest perceptual match, and AA detection accurately identifies interpolated pixels.
+</details>
 
-### Anti-Aliasing Removal
+<details>
+<summary><strong>Color Quantization (OKLAB)</strong></summary>
+<br>
 
-For each pixel, examines 8-connected neighbors. If the pixel lies "between" the two most dominant neighbor colors (triangle inequality in OKLAB), it's snapped to the closer one. Off by default for AI art.
+All color operations use **OKLAB color space**, which is perceptually uniform — Euclidean distance in OKLAB closely matches how humans see color differences. K-means clustering produces vibrant, meaningful centroids instead of muddy averages. Palette snapping picks the perceptually closest match.
+
+</details>
+
+<details>
+<summary><strong>Anti-Aliasing Removal</strong></summary>
+<br>
+
+For each pixel, examines its 8-connected neighbors. If the pixel lies "between" the two most dominant neighbor colors in OKLAB space (triangle inequality test), it's identified as an AA artifact and snapped to the closer neighbor. Off by default — AI art has intentional edge detail that this can destroy.
+
+</details>
 
 ---
 
@@ -141,7 +233,11 @@ normalize-pixelart process [OPTIONS] <INPUT> [OUTPUT]
 
 Output defaults to `<input>_normalized.png`.
 
-#### Grid Options
+<details>
+<summary><strong>All options</strong></summary>
+<br>
+
+**Grid**
 
 | Flag | Description |
 |------|-------------|
@@ -150,7 +246,7 @@ Output defaults to `<input>_normalized.png`.
 | `--no-grid-detect` | Skip grid detection (requires `--grid-size`) |
 | `--max-grid-candidate <N>` | Max grid size to test (default: 32) |
 
-#### Downscale Modes
+**Downscale**
 
 | Mode | Description |
 |------|-------------|
@@ -159,7 +255,7 @@ Output defaults to `<input>_normalized.png`.
 | `majority-vote` | Reduce to logical resolution, most common color wins. |
 | `center-pixel` | Reduce to logical resolution, center pixel only. Fastest. |
 
-#### Color Options
+**Color**
 
 | Flag | Description |
 |------|-------------|
@@ -169,7 +265,7 @@ Output defaults to `<input>_normalized.png`.
 | `--colors <N>` | Auto-extract N colors via k-means |
 | `--no-quantize` | Skip quantization |
 
-#### Background Options
+**Background**
 
 | Flag | Description |
 |------|-------------|
@@ -179,7 +275,7 @@ Output defaults to `<input>_normalized.png`.
 | `--bg-tolerance <N>` | Color tolerance in OKLAB (default: 0.05) |
 | `--no-flood-fill` | Global replacement instead of flood-fill |
 
-#### Output Options
+**Output**
 
 | Flag | Description |
 |------|-------------|
@@ -187,6 +283,8 @@ Output defaults to `<input>_normalized.png`.
 | `--target-height <N>` | Output height |
 | `--aa-threshold <0-1>` | Enable AA removal (off by default) |
 | `--overwrite` | Overwrite existing output |
+
+</details>
 
 ### `batch` — Process multiple images
 
@@ -196,25 +294,18 @@ normalize-pixelart batch [OPTIONS] <INPUT> <OUTPUT_DIR>
 
 `INPUT` can be a directory or glob pattern. All `process` flags available.
 
-```bash
-normalize-pixelart batch "assets/**/*.png" output/ --grid-size 4 --palette pico-8
-```
-
 ### `sheet` — Sprite sheet processing
 
 ```
 normalize-pixelart sheet [OPTIONS] <INPUT> [OUTPUT]
 ```
 
-**Fixed grid** (specify tile dimensions):
-```bash
-normalize-pixelart sheet tileset.png --tile-width 64 --tile-height 64 --grid-size 4
-```
+**Fixed grid** — specify `--tile-width` and `--tile-height` for known layouts.
+**Auto-split** — omit tile dimensions to auto-detect sprite boundaries.
 
-**Auto-split** (omit tile dimensions):
-```bash
-normalize-pixelart sheet ai_sheet.png --output-dir sprites/
-```
+<details>
+<summary><strong>Sheet options</strong></summary>
+<br>
 
 | Flag | Description |
 |------|-------------|
@@ -227,6 +318,8 @@ normalize-pixelart sheet ai_sheet.png --output-dir sprites/
 | `--output-dir <PATH>` | Save individual tiles |
 | `--no-normalize` | Split/reassemble only |
 
+</details>
+
 ### `tui` — Interactive terminal editor
 
 ```bash
@@ -238,16 +331,19 @@ Terminal UI with live image preview (Sixel/halfblock). Requires the `tui` featur
 ### `palette` — Palette utilities
 
 ```bash
-normalize-pixelart palette list                    # Show built-in palettes
-normalize-pixelart palette fetch endesga-32        # Download from Lospec
-normalize-pixelart palette extract input.png -o p.hex  # Extract palette from image
+normalize-pixelart palette list                        # Show built-in palettes
+normalize-pixelart palette fetch endesga-32            # Download from Lospec
+normalize-pixelart palette extract input.png -o p.hex  # Extract from image
 ```
 
 ---
 
 ## Config File
 
-Save settings in `.normalize-pixelart.toml`:
+Save settings in `.normalize-pixelart.toml` — CLI arguments override config values.
+
+<details>
+<summary><strong>Example config</strong></summary>
 
 ```toml
 [grid]
@@ -269,12 +365,16 @@ flood_fill = true
 overwrite = false
 ```
 
-CLI arguments override config values.
+</details>
 
-## Performance
+---
 
-Processing is parallelized via rayon — grid detection, AA removal, batch mode, and sprite sheet tiles all run in parallel. A 1024x1024 image typically processes in under 1 second.
+<div align="center">
 
-## License
+**Performance** — parallelized via rayon. Grid detection, AA removal, batch mode, and sprite sheet tiles all process in parallel. A 1024x1024 image typically completes in under 1 second.
 
-MIT
+<br>
+
+MIT License
+
+</div>
