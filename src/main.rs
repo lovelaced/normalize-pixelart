@@ -259,7 +259,7 @@ fn run_sheet_command(
             // Original fixed-grid mode
             let (config, _) = build_pipeline_config(&args.pipeline, config_file)?;
 
-            let result = normalize_pixelart::spritesheet::process_sheet(
+            let (result, _tiles, _tw, _th) = normalize_pixelart::spritesheet::process_sheet(
                 &image,
                 tw,
                 th,

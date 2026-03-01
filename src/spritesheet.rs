@@ -6,7 +6,9 @@ use rayon::prelude::*;
 use tracing::info;
 
 use crate::color::oklab::{oklab_distance, rgba_to_oklab};
-use crate::pipeline::{detect_border_color, run_pipeline, PipelineConfig};
+use crate::pipeline::{
+    detect_border_color, grid_detect, run_pipeline, PipelineConfig, PipelineState,
+};
 
 /// A tile extracted from a sprite sheet.
 pub struct Tile {
@@ -117,9 +119,40 @@ pub fn assemble_sheet(
     output
 }
 
+/// Build a tile-safe pipeline config from the caller's config.
+///
+/// - Detects grid once on the full sheet image for consistency across all tiles.
+/// - Clears output dimensions (those apply to the sheet, not individual tiles).
+fn make_tile_config(image: &RgbaImage, config: &PipelineConfig) -> PipelineConfig {
+    let mut tc = config.clone();
+
+    // Detect grid once on the full sheet so every tile uses the same grid size/phase.
+    if !tc.grid.skip && tc.grid.override_size.is_none() {
+        let mut temp = PipelineState::new(image.clone());
+        if grid_detect::detect_grid(&mut temp, &tc.grid).is_ok() {
+            if let Some(gs) = temp.grid_size {
+                tc.grid.override_size = Some(gs);
+            }
+            if let Some(phase) = temp.grid_phase {
+                tc.grid.override_phase = Some(phase);
+            }
+        }
+    }
+
+    // Output dimensions are sheet-level; individual tiles should stay at their
+    // post-pipeline resolution so reassembly works correctly.
+    tc.output_width = None;
+    tc.output_height = None;
+
+    tc
+}
+
 /// Split a sprite sheet → normalize each tile → reassemble.
 ///
-/// Each tile is processed through the full pipeline in parallel.
+/// Grid detection runs once on the full sheet for consistency, then each tile
+/// is processed through the pipeline in parallel with the same grid settings.
+///
+/// Returns `(assembled_sheet, processed_tiles, actual_tile_w, actual_tile_h)`.
 pub fn process_sheet(
     image: &RgbaImage,
     tile_w: u32,
@@ -127,7 +160,7 @@ pub fn process_sheet(
     spacing: u32,
     margin: u32,
     config: &PipelineConfig,
-) -> Result<RgbaImage> {
+) -> Result<(RgbaImage, Vec<Tile>, u32, u32)> {
     let tiles = split_sheet(image, tile_w, tile_h, spacing, margin);
 
     if tiles.is_empty() {
@@ -142,18 +175,21 @@ pub fn process_sheet(
         );
     }
 
+    let tile_config = make_tile_config(image, config);
+
     eprintln!(
-        "Processing {} tiles ({}x{} each)...",
+        "Processing {} tiles ({}x{} each, grid={:?})...",
         tiles.len(),
         tile_w,
-        tile_h
+        tile_h,
+        tile_config.grid.override_size,
     );
 
     // Process each tile through the pipeline in parallel
     let processed: Result<Vec<Tile>> = tiles
         .into_par_iter()
         .map(|tile| {
-            let state = run_pipeline(tile.image, config)?;
+            let state = run_pipeline(tile.image, &tile_config)?;
             Ok(Tile {
                 col: tile.col,
                 row: tile.row,
@@ -164,7 +200,13 @@ pub fn process_sheet(
 
     let processed = processed?;
 
-    Ok(assemble_sheet(&processed, tile_w, tile_h, spacing, margin))
+    // Use actual processed tile dimensions for reassembly (may differ from
+    // input tile_w/tile_h if the pipeline downscaled).
+    let actual_tw = processed.first().map(|t| t.image.width()).unwrap_or(tile_w);
+    let actual_th = processed.first().map(|t| t.image.height()).unwrap_or(tile_h);
+
+    let sheet = assemble_sheet(&processed, actual_tw, actual_th, spacing, margin);
+    Ok((sheet, processed, actual_tw, actual_th))
 }
 
 // ---------------------------------------------------------------------------
@@ -505,6 +547,9 @@ pub fn auto_split_sheet(
 }
 
 /// Auto-split a sheet, optionally normalize each tile, and reassemble.
+///
+/// Grid detection runs once on the full sheet for consistency when a pipeline
+/// config is provided.
 pub fn process_sheet_auto(
     image: &RgbaImage,
     auto_config: &AutoSplitConfig,
@@ -519,11 +564,12 @@ pub fn process_sheet_auto(
         tile_h
     );
 
-    let processed = if let Some(config) = pipeline_config {
+    let (processed, out_tw, out_th) = if let Some(config) = pipeline_config {
+        let tile_config = make_tile_config(image, config);
         let result: Result<Vec<Tile>> = tiles
             .into_par_iter()
             .map(|tile| {
-                let state = run_pipeline(tile.image, config)?;
+                let state = run_pipeline(tile.image, &tile_config)?;
                 Ok(Tile {
                     col: tile.col,
                     row: tile.row,
@@ -531,13 +577,16 @@ pub fn process_sheet_auto(
                 })
             })
             .collect();
-        result?
+        let processed = result?;
+        let actual_tw = processed.first().map(|t| t.image.width()).unwrap_or(tile_w);
+        let actual_th = processed.first().map(|t| t.image.height()).unwrap_or(tile_h);
+        (processed, actual_tw, actual_th)
     } else {
-        tiles
+        (tiles, tile_w, tile_h)
     };
 
-    let sheet = assemble_sheet(&processed, tile_w, tile_h, 0, 0);
-    Ok((sheet, processed, tile_w, tile_h))
+    let sheet = assemble_sheet(&processed, out_tw, out_th, 0, 0);
+    Ok((sheet, processed, out_tw, out_th))
 }
 
 #[cfg(test)]

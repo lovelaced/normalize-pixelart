@@ -981,3 +981,21 @@ html, body {
   color: var(--green);
   font-size: 13px;
 }
+
+/* GIF preview */
+.gif-preview-container {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--crust);
+  border: 1px solid var(--surface0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gif-preview-img {
+  max-width: 100%;
+  max-height: 280px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

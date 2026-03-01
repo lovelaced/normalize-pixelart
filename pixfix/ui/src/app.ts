@@ -170,6 +170,12 @@ interface AppState {
   };
   sheetPreview: { tileCount: number; tileWidth: number; tileHeight: number; cols: number; rows: number } | null;
   sheetProcessing: boolean;
+  // GIF animation state
+  gifMode: 'row' | 'all';
+  gifRow: number;
+  gifFps: number;
+  gifPreviewUrl: string | null;
+  gifGenerating: boolean;
 }
 
 const state: AppState = {
@@ -229,6 +235,12 @@ const state: AppState = {
   },
   sheetPreview: null,
   sheetProcessing: false,
+  // GIF
+  gifMode: 'row',
+  gifRow: 0,
+  gifFps: 10,
+  gifPreviewUrl: null,
+  gifGenerating: false,
 };
 
 const DEFAULT_CONFIG: AppConfig = JSON.parse(JSON.stringify(state.config));
@@ -1588,6 +1600,51 @@ function renderSheet(): void {
     html += '<div class="sheet-section">';
     html += `<div class="sheet-info">${p.tileCount} tiles &mdash; ${p.cols}\u00d7${p.rows} grid &mdash; ${p.tileWidth}\u00d7${p.tileHeight}px each</div>`;
     html += '</div>';
+
+    // GIF animation section
+    const gifDis = state.gifGenerating ? ' disabled' : '';
+    html += '<div class="sheet-section">';
+    html += '<div class="sheet-title" style="margin-top:4px">GIF Animation</div>';
+    html += '<div class="sheet-help">Generate an animated GIF from the processed tiles. Preview it here or export to a file.</div>';
+
+    // Mode toggle
+    html += '<div class="sheet-setting"><span class="sheet-setting-label">Animate</span>';
+    html += '<div class="sheet-mode-toggle">';
+    html += `<button class="sheet-mode-btn gif-mode-btn${state.gifMode === 'row' ? ' active' : ''}" data-gif-mode="row"${gifDis}>By Row</button>`;
+    html += `<button class="sheet-mode-btn gif-mode-btn${state.gifMode === 'all' ? ' active' : ''}" data-gif-mode="all"${gifDis}>Entire Sheet</button>`;
+    html += '</div></div>';
+
+    // Row selector (row mode only)
+    if (state.gifMode === 'row') {
+      html += '<div class="sheet-setting"><span class="sheet-setting-label">Row</span>';
+      html += `<input class="sheet-input" type="number" id="gif-row" value="${state.gifRow}" min="0" max="${p.rows - 1}"${gifDis}></div>`;
+      html += `<div class="sheet-help">Which row to animate (0\u2013${p.rows - 1}). Each row becomes one animation sequence.</div>`;
+    }
+
+    // FPS input
+    html += '<div class="sheet-setting"><span class="sheet-setting-label">Frame Rate</span>';
+    html += `<input class="sheet-input" type="number" id="gif-fps" value="${state.gifFps}" min="1" max="100"${gifDis}></div>`;
+    html += '<div class="sheet-help">Frames per second (1\u2013100). 10 fps is a good default for pixel art animations.</div>';
+
+    // Action buttons
+    html += '<div class="sheet-actions" style="margin-top:4px">';
+    html += `<button class="batch-btn batch-btn-primary" id="gif-preview-btn"${gifDis}>Preview GIF</button>`;
+    html += `<button class="batch-btn" id="gif-export-btn"${state.gifPreviewUrl && !state.gifGenerating ? '' : ' disabled'}>Export GIF</button>`;
+    html += '</div>';
+
+    // Generating indicator
+    if (state.gifGenerating) {
+      html += '<div class="sheet-info" style="color:var(--mauve);margin-top:6px">Generating GIF...</div>';
+    }
+
+    // Preview area
+    if (state.gifPreviewUrl) {
+      html += '<div class="gif-preview-container">';
+      html += `<img class="gif-preview-img" src="${state.gifPreviewUrl}" alt="GIF Preview">`;
+      html += '</div>';
+    }
+
+    html += '</div>';
   }
 
   if (state.sheetProcessing) {
@@ -1655,6 +1712,7 @@ async function sheetProcessAction(): Promise<void> {
   if (!state.imageLoaded || state.sheetProcessing) return;
   readSheetConfig();
   state.sheetProcessing = true;
+  state.gifPreviewUrl = null;
   renderSheet();
   setStatus('Processing sheet...', 'processing');
   const t0 = performance.now();
@@ -1689,6 +1747,67 @@ async function sheetSaveTilesAction(): Promise<void> {
     }
   } catch (e) {
     setStatus('Error saving tiles: ' + e, 'error');
+  }
+}
+
+function readGifConfig(): void {
+  const rowEl = document.getElementById('gif-row') as HTMLInputElement | null;
+  const fpsEl = document.getElementById('gif-fps') as HTMLInputElement | null;
+  if (rowEl) {
+    const v = parseInt(rowEl.value);
+    state.gifRow = isNaN(v) ? 0 : Math.max(0, v);
+  }
+  if (fpsEl) {
+    const v = parseInt(fpsEl.value);
+    state.gifFps = isNaN(v) ? 10 : Math.max(1, Math.min(100, v));
+  }
+}
+
+async function gifPreviewAction(): Promise<void> {
+  if (state.gifGenerating) return;
+  readGifConfig();
+  state.gifGenerating = true;
+  state.gifPreviewUrl = null;
+  renderSheet();
+  setStatus('Generating GIF preview...', 'processing');
+  try {
+    const dataUrl = await invoke<string>('sheet_generate_gif', {
+      mode: state.gifMode,
+      row: state.gifMode === 'row' ? state.gifRow : null,
+      fps: state.gifFps,
+    });
+    state.gifPreviewUrl = dataUrl;
+    setStatus('GIF preview generated', 'success');
+  } catch (e) {
+    setStatus('GIF error: ' + e, 'error');
+  } finally {
+    state.gifGenerating = false;
+    renderSheet();
+  }
+}
+
+async function gifExportAction(): Promise<void> {
+  if (!state.gifPreviewUrl) return;
+  readGifConfig();
+  try {
+    const defaultName = state.gifMode === 'row' ? `row_${state.gifRow}.gif` : 'animation.gif';
+    const path = await saveDialog({
+      filters: [{ name: 'GIF', extensions: ['gif'] }],
+      defaultPath: defaultName,
+    });
+    if (path) {
+      setStatus('Exporting GIF...', 'processing');
+      await invoke('sheet_export_gif', {
+        path,
+        mode: state.gifMode,
+        row: state.gifMode === 'row' ? state.gifRow : null,
+        fps: state.gifFps,
+      });
+      const fname = (path as string).split('/').pop()!.split('\\').pop()!;
+      setStatus(`GIF saved to ${fname}`, 'success');
+    }
+  } catch (e) {
+    setStatus('GIF export error: ' + e, 'error');
   }
 }
 
@@ -1849,15 +1968,22 @@ document.getElementById('batch-content')!.addEventListener('click', (e: Event) =
 // Sheet panel click delegation
 document.getElementById('sheet-content')!.addEventListener('click', (e: Event) => {
   const target = e.target as HTMLElement;
-  if (target.classList?.contains('sheet-mode-btn')) {
+  if (target.classList?.contains('sheet-mode-btn') && !target.classList.contains('gif-mode-btn')) {
     const mode = target.dataset.mode as 'fixed' | 'auto';
     if (mode) { state.sheetMode = mode; state.sheetPreview = null; renderSheet(); }
+    return;
+  }
+  if (target.classList?.contains('gif-mode-btn')) {
+    const gifMode = target.dataset.gifMode as 'row' | 'all';
+    if (gifMode) { state.gifMode = gifMode; state.gifPreviewUrl = null; renderSheet(); }
     return;
   }
   if (target.id === 'sheet-no-normalize') { state.sheetConfig.noNormalize = !state.sheetConfig.noNormalize; renderSheet(); return; }
   if (target.id === 'sheet-preview-btn') { sheetPreviewAction(); return; }
   if (target.id === 'sheet-process-btn') { sheetProcessAction(); return; }
   if (target.id === 'sheet-save-tiles-btn') { sheetSaveTilesAction(); return; }
+  if (target.id === 'gif-preview-btn') { gifPreviewAction(); return; }
+  if (target.id === 'gif-export-btn') { gifExportAction(); return; }
 });
 
 init();

@@ -2,7 +2,9 @@ use std::io::Cursor;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
-use image::RgbaImage;
+use base64::Engine;
+use image::codecs::gif::{GifEncoder, Repeat};
+use image::{Delay, Frame, RgbaImage};
 use serde::{Deserialize, Serialize};
 use tauri::{Emitter, State};
 
@@ -235,6 +237,58 @@ fn encode_png(img: &RgbaImage) -> Result<Vec<u8>, String> {
     let mut buf = Cursor::new(Vec::new());
     img.write_to(&mut buf, image::ImageFormat::Png)
         .map_err(|e| e.to_string())?;
+    Ok(buf.into_inner())
+}
+
+fn build_gif_bytes(
+    tiles: &[(u32, u32, RgbaImage)],
+    mode: &str,
+    row: Option<u32>,
+    fps: u32,
+) -> Result<Vec<u8>, String> {
+    if fps == 0 || fps > 100 {
+        return Err("FPS must be between 1 and 100".to_string());
+    }
+
+    // Select frames based on mode
+    let frame_images: Vec<&RgbaImage> = match mode {
+        "row" => {
+            let target_row = row.ok_or("Row number required for row mode")?;
+            let mut row_tiles: Vec<_> = tiles.iter().filter(|(_, r, _)| *r == target_row).collect();
+            if row_tiles.is_empty() {
+                return Err(format!("No tiles found in row {}", target_row));
+            }
+            row_tiles.sort_by_key(|(c, _, _)| *c);
+            row_tiles.into_iter().map(|(_, _, img)| img).collect()
+        }
+        "all" => {
+            let mut sorted: Vec<_> = tiles.iter().collect();
+            sorted.sort_by_key(|(c, r, _)| (*r, *c));
+            sorted.into_iter().map(|(_, _, img)| img).collect()
+        }
+        _ => return Err(format!("Unknown GIF mode: {}", mode)),
+    };
+
+    if frame_images.is_empty() {
+        return Err("No frames to encode".to_string());
+    }
+
+    // GIF delay: fps → milliseconds per frame
+    let delay_ms = 1000u32 / fps;
+    let delay = Delay::from_numer_denom_ms(delay_ms, 1);
+
+    let frames: Vec<Frame> = frame_images
+        .into_iter()
+        .map(|img| Frame::from_parts(img.clone(), 0, 0, delay))
+        .collect();
+
+    let mut buf = Cursor::new(Vec::new());
+    {
+        let mut encoder = GifEncoder::new(&mut buf);
+        encoder.set_repeat(Repeat::Infinite).map_err(|e| e.to_string())?;
+        encoder.encode_frames(frames).map_err(|e| e.to_string())?;
+    }
+
     Ok(buf.into_inner())
 }
 
@@ -579,19 +633,18 @@ fn sheet_process(
             let th = tile_height.ok_or("tile_height required for fixed mode")?;
             let sp = spacing.unwrap_or(0);
             let mg = margin.unwrap_or(0);
-            let result = if skip_pipeline {
-                // Just split and reassemble without normalizing
+
+            let (result, processed_tiles, actual_tw, actual_th) = if skip_pipeline {
                 let tiles = spritesheet::split_sheet(&original, tw, th, sp, mg);
-                spritesheet::assemble_sheet(&tiles, tw, th, sp, mg)
+                let sheet = spritesheet::assemble_sheet(&tiles, tw, th, sp, mg);
+                (sheet, tiles, tw, th)
             } else {
                 spritesheet::process_sheet(&original, tw, th, sp, mg, &config)
                     .map_err(|e| e.to_string())?
             };
+
             let out_w = result.width();
             let out_h = result.height();
-
-            // Split again to get tiles for saving
-            let processed_tiles = spritesheet::split_sheet(&result, tw, th, sp, mg);
             let cols = if processed_tiles.is_empty() { 0 } else { processed_tiles.iter().map(|t| t.col).max().unwrap() + 1 };
             let rows = if processed_tiles.is_empty() { 0 } else { processed_tiles.iter().map(|t| t.row).max().unwrap() + 1 };
             let tile_count = processed_tiles.len() as u32;
@@ -605,7 +658,7 @@ fn sheet_process(
             st.processed = Some(result);
             st.sheet_tiles = Some(sheet_tiles);
 
-            Ok(SheetProcessResult { tile_count, tile_width: tw, tile_height: th, cols, rows, output_width: out_w, output_height: out_h })
+            Ok(SheetProcessResult { tile_count, tile_width: actual_tw, tile_height: actual_th, cols, rows, output_width: out_w, output_height: out_h })
         }
         "auto" => {
             let auto_config = spritesheet::AutoSplitConfig {
@@ -657,6 +710,43 @@ fn sheet_save_tiles(output_dir: String, state: State<'_, Mutex<AppState>>) -> Re
     Ok(count)
 }
 
+#[tauri::command]
+fn sheet_generate_gif(
+    mode: String,
+    row: Option<u32>,
+    fps: u32,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<String, String> {
+    let st = state.lock().unwrap();
+    let tiles = st
+        .sheet_tiles
+        .as_ref()
+        .ok_or("No sheet tiles available. Process a sheet first.")?;
+
+    let gif_bytes = build_gif_bytes(tiles, &mode, row, fps)?;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&gif_bytes);
+    Ok(format!("data:image/gif;base64,{}", b64))
+}
+
+#[tauri::command]
+fn sheet_export_gif(
+    path: String,
+    mode: String,
+    row: Option<u32>,
+    fps: u32,
+    state: State<'_, Mutex<AppState>>,
+) -> Result<(), String> {
+    let st = state.lock().unwrap();
+    let tiles = st
+        .sheet_tiles
+        .as_ref()
+        .ok_or("No sheet tiles available. Process a sheet first.")?;
+
+    let gif_bytes = build_gif_bytes(tiles, &mode, row, fps)?;
+    std::fs::write(&path, &gif_bytes).map_err(|e| format!("Failed to write GIF: {}", e))?;
+    Ok(())
+}
+
 // ---------------------------------------------------------------------------
 // App setup
 // ---------------------------------------------------------------------------
@@ -679,6 +769,8 @@ pub fn run() {
             sheet_preview,
             sheet_process,
             sheet_save_tiles,
+            sheet_generate_gif,
+            sheet_export_gif,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
