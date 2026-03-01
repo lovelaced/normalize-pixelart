@@ -1,0 +1,21 @@
+# Build
+/target
+
+# Test outputs
+test_images/
+
+# Input images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.webp
+
+# Editor
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
