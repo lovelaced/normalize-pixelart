@@ -1,13 +1,13 @@
-<div align="center">
-
-<pre>
+```
       _       __  _
  _ __(_)_  __/ _|(_)_  __
 | '_ \ \ \/ / |_ | \ \/ /
-| |_) | |&gt;  &lt;|  _|| |&gt;  &lt;
+| |_) | |>  <|  _|| |>  <
 | .__/|_/_/\_\_| |_/_/\_\
 |_|
-</pre>
+```
+
+<div align="center">
 
 **Clean up AI-generated pixel art.**<br>
 Snap to grid. Remove AA fuzz. Reduce to a palette. Remove backgrounds.
