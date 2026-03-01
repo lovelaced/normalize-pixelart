@@ -16,6 +16,8 @@ pub struct ConfigFile {
     pub background: BackgroundFileConfig,
     #[serde(default)]
     pub output: OutputConfig,
+    #[serde(default)]
+    pub sheet: SheetConfig,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -52,6 +54,13 @@ pub struct BackgroundFileConfig {
 #[derive(Debug, Deserialize, Default)]
 pub struct OutputConfig {
     pub overwrite: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub struct SheetConfig {
+    pub separator_threshold: Option<f32>,
+    pub min_sprite_size: Option<u32>,
+    pub pad: Option<u32>,
 }
 
 /// Default config file name.

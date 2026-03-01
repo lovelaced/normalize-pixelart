@@ -9,10 +9,12 @@ AI image generators produce "pixel art" riddled with **mixels** (mixed-resolutio
 - **Grid detection** — automatically finds the pixel grid size and phase offset in upscaled art
 - **Grid snapping** — enforces a clean pixel grid at original resolution, eliminating mixels
 - **Phase alignment** — auto-detects optimal grid offset so block boundaries align with real edges
-- **Color quantization** — snap to built-in palettes (PICO-8, Sweetie-16, etc.) or auto-extract palettes via k-means in OKLAB space
+- **Color quantization** — snap to built-in palettes (PICO-8, Sweetie-16, etc.), fetch from [Lospec](https://lospec.com), or auto-extract palettes via k-means in OKLAB space
 - **Anti-aliasing removal** — detects and removes interpolation artifacts between pixel boundaries
 - **Background removal** — auto-detect and remove solid backgrounds via flood-fill or global replacement
 - **Config files** — save your settings in `.normalize-pixelart.toml`
+- **Batch processing** — normalize an entire directory of sprites in one command, with a progress bar
+- **Sprite sheet support** — split a sheet into tiles, normalize each in parallel, and reassemble
 - **Fast** — parallel processing via rayon; handles 1024x1024 images in under a second
 
 ## Installation
@@ -178,8 +180,11 @@ Only useful for cleanly upscaled pixel art. AI-generated art has intentional edg
 |------|-------------|
 | `--palette <NAME>` | Use a built-in palette (see below) |
 | `--palette-file <PATH>` | Load a custom palette from a `.hex` file |
+| `--lospec <SLUG>` | Fetch a palette from [Lospec](https://lospec.com) by slug (requires `lospec` feature) |
 | `--colors <N>` | Auto-extract N colors via k-means clustering |
 | `--no-quantize` | Skip color quantization entirely |
+
+Priority: `--palette-file` > `--lospec` > `--palette` > `--colors`
 
 #### Background Removal Options
 
@@ -197,11 +202,179 @@ Only useful for cleanly upscaled pixel art. AI-generated art has intentional edg
 |------|-------------|
 | `--overwrite` | Overwrite output file if it exists |
 
+### `batch` — Normalize a directory of images
+
+```
+normalize-pixelart batch [OPTIONS] <INPUT> <OUTPUT>
+```
+
+Process multiple images in parallel. `INPUT` can be a directory or a glob pattern. `OUTPUT` is the directory where normalized images are written (created if needed).
+
+| Flag | Description |
+|------|-------------|
+| `--overwrite` | Overwrite existing output files |
+
+All pipeline flags from `process` are available (`--grid-size`, `--palette`, `--colors`, etc.).
+
+```bash
+# Process all PNGs in a directory
+normalize-pixelart batch sprites/ output/ --grid-size 4
+
+# Process with a glob pattern
+normalize-pixelart batch "assets/**/*.png" output/ --grid-size 4 --palette pico-8
+
+# Overwrite existing outputs
+normalize-pixelart batch sprites/ output/ --grid-size 4 --overwrite
+```
+
+Output files are named `<input_stem>_normalized.<ext>` in the output directory.
+
+### `sheet` — Normalize a sprite sheet
+
+```
+normalize-pixelart sheet [OPTIONS] <INPUT> [OUTPUT]
+```
+
+Split a sprite sheet into individual tiles, normalize each tile through the pipeline in parallel, and reassemble into a clean sheet. Output defaults to `<input>_normalized.png`.
+
+Two modes:
+
+1. **Fixed grid** — specify `--tile-width` and `--tile-height` for sheets with a known, regular tile layout
+2. **Auto-split** — omit tile dimensions to auto-detect sprite boundaries in messy AI-generated sheets
+
+#### Fixed Grid Mode
+
+| Flag | Description |
+|------|-------------|
+| `--tile-width <N>` | Tile width in pixels |
+| `--tile-height <N>` | Tile height in pixels |
+| `--spacing <N>` | Gap between tiles in pixels (default: 0) |
+| `--margin <N>` | Border around the entire sheet in pixels (default: 0) |
+| `--overwrite` | Overwrite output file if it exists |
+
+```bash
+# Normalize a 64x64 tile sheet
+normalize-pixelart sheet tileset.png --tile-width 64 --tile-height 64 --grid-size 4
+
+# Sheet with spacing between tiles
+normalize-pixelart sheet tileset.png clean_tileset.png \
+  --tile-width 32 --tile-height 32 --spacing 2 --grid-size 4
+
+# Sheet with margin and palette
+normalize-pixelart sheet sprites.png \
+  --tile-width 48 --tile-height 48 --margin 4 \
+  --grid-size 4 --palette sweetie-16
+```
+
+#### Auto-Split Mode
+
+When `--tile-width` and `--tile-height` are omitted, the tool auto-detects sprite boundaries by finding rows and columns of background pixels, extracts each sprite, trims to tight bounding boxes, and reassembles into a uniform grid. This works well with AI-generated "sprite sheets" (Midjourney, DALL-E, etc.) that have uneven spacing and sizes.
+
+| Flag | Description |
+|------|-------------|
+| `--separator-threshold <0.0-1.0>` | Fraction of bg pixels to classify a row/col as separator (default: 0.90) |
+| `--min-sprite-size <N>` | Minimum sprite dimension in pixels — filters noise (default: 8) |
+| `--pad <N>` | Padding around each sprite in the output sheet (default: 0) |
+| `--output-dir <PATH>` | Also save individual sprite files as `sprite_RR_CC.png` |
+| `--no-normalize` | Skip the normalization pipeline (just split and reassemble) |
+| `--overwrite` | Overwrite output file if it exists |
+
+Background detection reuses `--bg-color` and `--bg-tolerance` from the pipeline flags. If neither is set, the tool auto-detects transparency or the dominant border color.
+
+```bash
+# Auto-detect sprites in an AI-generated sheet
+normalize-pixelart sheet ai_sheet.png
+
+# With explicit background color and tolerance
+normalize-pixelart sheet ai_sheet.png --bg-color FFFFFF --bg-tolerance 0.1
+
+# Lower separator threshold for sheets with less clean gutters
+normalize-pixelart sheet ai_sheet.png --separator-threshold 0.85
+
+# Save individual sprites and the reassembled sheet
+normalize-pixelart sheet ai_sheet.png --output-dir sprites/
+
+# Just split and reassemble without normalizing
+normalize-pixelart sheet ai_sheet.png --no-normalize
+
+# Auto-split + normalize with palette
+normalize-pixelart sheet ai_sheet.png --grid-size 4 --palette sweetie-16
+```
+
+### `tui` — Interactive editor
+
+```
+normalize-pixelart tui [OPTIONS] [INPUT]
+```
+
+Launch an interactive terminal-based editor for tuning pipeline parameters with live image preview. Uses Sixel graphics for high-fidelity image rendering in supported terminals (iTerm2, WezTerm, foot, etc.), with Unicode halfblock fallback for other terminals.
+
+All pipeline flags from `process` are available for initial settings.
+
+```bash
+# Launch empty, open an image from within
+normalize-pixelart tui
+
+# Launch with an image pre-loaded
+normalize-pixelart tui input.png
+
+# Pre-configure pipeline settings
+normalize-pixelart tui input.png --grid-size 4 --palette pico-8
+```
+
+**Tabs:**
+
+| Tab | Description |
+|-----|-------------|
+| Preview | Side-by-side original/processed image preview |
+| Settings | Adjust pipeline parameters with keyboard controls |
+| Diagnostics | Grid detection scores and color histogram |
+
+**Key bindings:**
+
+| Key | Action |
+|-----|--------|
+| `q` / `Ctrl-C` | Quit |
+| `Tab` | Switch between tabs |
+| `Space` | Run pipeline with current settings |
+| `o` | Open a file (text input prompt) |
+| `s` | Save processed image (text input prompt) |
+| `r` | Reset settings to initial values |
+| `↑` / `↓` | Select setting (Settings tab) |
+| `←` / `→` | Adjust setting value (Settings tab) |
+
+Requires the `tui` feature (enabled by default). Build without it using `cargo build --no-default-features --features lospec`.
+
 ### `palette list` — Show built-in palettes
 
 ```
 normalize-pixelart palette list
 ```
+
+### `palette fetch` — Download a palette from Lospec
+
+```
+normalize-pixelart palette fetch [OPTIONS] <SLUG>
+```
+
+Fetches a palette from the [Lospec palette database](https://lospec.com/palette-list) by slug. Downloaded palettes are cached locally so subsequent requests don't hit the network.
+
+| Flag | Description |
+|------|-------------|
+| `-o, --output <PATH>` | Save palette as a `.hex` file |
+
+```bash
+# Browse and display a palette
+normalize-pixelart palette fetch endesga-32
+
+# Download and save as .hex file
+normalize-pixelart palette fetch apollo -o apollo.hex
+
+# Use directly when processing
+normalize-pixelart process input.png output.png --lospec endesga-32 --grid-size 4
+```
+
+Requires the `lospec` feature (enabled by default). Build without it using `cargo build --no-default-features`.
 
 ### `palette extract` — Extract a palette from an image
 
@@ -226,6 +399,12 @@ Uses k-means++ clustering in OKLAB space to find representative colors.
 | Endesga 64 | 64 | `--palette endesga-64` |
 | Game Boy | 4 | `--palette gameboy` |
 | NES | 26 | `--palette nes` |
+
+## Lospec Palettes
+
+Access thousands of curated pixel art palettes from [Lospec](https://lospec.com/palette-list) using `--lospec <slug>` or the `palette fetch` command. The slug is the URL-friendly name shown in the Lospec URL (e.g., `https://lospec.com/palette-list/endesga-32` → slug is `endesga-32`).
+
+Downloaded palettes are cached at `~/Library/Caches/normalize-pixelart/palettes/` (macOS) or `~/.cache/normalize-pixelart/palettes/` (Linux) to avoid repeated network requests.
 
 ## Custom Palette Files
 
@@ -312,8 +491,21 @@ normalize-pixelart process upscaled.png clean.png \
   --grid-size 4 \
   --aa-threshold 0.3
 
+# Fetch a Lospec palette and use it
+normalize-pixelart palette fetch endesga-32
+normalize-pixelart process input.png output.png --lospec endesga-32 --grid-size 4
+
 # Process with config file
 normalize-pixelart process input.png output.png --config my-settings.toml
+
+# Batch process an entire directory
+normalize-pixelart batch sprites/ cleaned/ --grid-size 4 --palette sweetie-16
+
+# Normalize a sprite sheet (64x64 tiles, no spacing)
+normalize-pixelart sheet tileset.png --tile-width 64 --tile-height 64 --grid-size 4
+
+# Auto-split an AI-generated sprite sheet
+normalize-pixelart sheet ai_sheet.png --output-dir sprites/
 ```
 
 ## Performance
@@ -322,6 +514,8 @@ Processing is parallelized via rayon:
 
 - Grid detection runs candidate evaluation and phase scanning in parallel
 - AA removal processes rows in parallel with pre-computed OKLAB values
+- Batch mode processes multiple files in parallel with a progress bar
+- Sprite sheet mode processes all tiles in parallel
 - A 1024x1024 image typically processes in under 1 second on a modern multi-core CPU
 
 ## License

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pixfix</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Title bar -->
+    <div class="titlebar">
+      <span class="titlebar-title">pixfix</span>
+      <span class="titlebar-file" id="filename"></span>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <div class="tab active" data-tab="preview"><span class="tab-key">1</span>Preview</div>
+      <div class="tab" data-tab="settings"><span class="tab-key">2</span>Settings</div>
+      <div class="tab" data-tab="diagnostics"><span class="tab-key">3</span>Diagnostics</div>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="content">
+      <!-- Preview -->
+      <div class="tab-panel preview-panel active" id="panel-preview">
+        <div class="welcome" id="welcome">
+          <div class="welcome-logo">        _       __ _
+  _ __ (_)_  __/ _(_)_  __
+ | '_ \| \ \/ / |_| \ \/ /
+ | |_) | |>  <|  _| |>  &lt;
+ | .__/|_/_/\_\_| |_/_/\_\
+ |_|</div>
+          <div class="welcome-guide">
+            <div class="guide-section">
+              <div class="guide-title">Quick Start</div>
+              <div class="guide-steps">
+                <div class="guide-step"><span class="guide-num">1.</span> <span class="guide-text">Open an image &mdash; press <kbd>o</kbd> or drag &amp; drop a file</span></div>
+                <div class="guide-step"><span class="guide-num">2.</span> <span class="guide-text">Preview the result &mdash; original and processed side by side</span></div>
+                <div class="guide-step"><span class="guide-num">3.</span> <span class="guide-text">Tweak settings &mdash; switch to the Settings tab to adjust</span></div>
+                <div class="guide-step"><span class="guide-num">4.</span> <span class="guide-text">Save &mdash; press <kbd>s</kbd> to export the cleaned-up image</span></div>
+              </div>
+            </div>
+            <div class="guide-section">
+              <div class="guide-title">What pixfix does</div>
+              <div class="guide-body">Cleans up AI-generated pixel art by snapping pixels to a
+clean grid, removing anti-aliasing fuzz, reducing to a
+chosen color palette, and removing backgrounds.</div>
+            </div>
+            <div class="guide-section">
+              <div class="guide-title">Keyboard</div>
+              <div class="guide-keys">
+                <span><kbd>o</kbd> Open</span>
+                <span><kbd>s</kbd> Save</span>
+                <span><kbd>Space</kbd> Reprocess</span>
+                <span><kbd>r</kbd> Reset</span>
+              </div>
+              <div class="guide-keys">
+                <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs</span>
+                <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> Adjust</span>
+                <span><kbd>Enter</kbd> Type value</span>
+                <span><kbd>Ctrl+Q</kbd> Quit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="image-pane" id="original-pane" style="display:none">
+          <div class="pane-header">Original <span class="dim" id="original-dims"></span></div>
+          <div class="image-container">
+            <img id="original-img" alt="Original">
+          </div>
+        </div>
+        <div class="image-pane" id="processed-pane" style="display:none">
+          <div class="pane-header">Processed <span class="dim" id="processed-dims"></span></div>
+          <div class="image-container">
+            <img id="processed-img" alt="Processed">
+            <div class="processing-overlay" id="preview-spinner">
+              <div class="spinner"></div>
+              <span class="processing-overlay-text">Processing...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="tab-panel settings-panel" id="panel-settings">
+        <div class="settings-list" id="settings-list"></div>
+        <div class="settings-preview">
+          <img id="settings-preview-img" alt="Preview" style="display:none">
+          <span id="settings-no-image" style="color:var(--overlay0);font-size:12px">No image loaded</span>
+          <div class="processing-overlay" id="settings-spinner">
+            <div class="spinner"></div>
+            <span class="processing-overlay-text">Processing...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnostics -->
+      <div class="tab-panel diagnostics-panel" id="panel-diagnostics">
+        <div class="diag-section">
+          <div class="diag-title">Grid Detection</div>
+          <div id="diag-grid-info"></div>
+          <div id="diag-grid-bars" style="margin-top:8px"></div>
+        </div>
+        <div class="diag-section">
+          <div class="diag-title">Color Histogram</div>
+          <div id="diag-info"></div>
+          <div id="diag-histogram" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <span class="status-msg" id="status-msg">Press 'o' to open an image</span>
+      <div class="shortcut-bar">
+        <span><kbd>o</kbd> Open</span>
+        <span><kbd>s</kbd> Save</span>
+        <span><kbd>Space</kbd> Process</span>
+        <span><kbd>r</kbd> Reset</span>
+      </div>
+    </div>
+
+    <!-- Drop overlay -->
+    <div class="drop-overlay" id="drop-overlay">
+      <span class="drop-overlay-text">Drop image to open</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

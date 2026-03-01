@@ -1,9 +1,17 @@
+[workspace]
+members = [".", "pixfix"]
+
 [package]
 name = "normalize-pixelart"
 version = "0.1.0"
 edition = "2021"
 description = "Normalize AI-generated pixel art into clean, grid-aligned game assets"
 license = "MIT"
+
+[features]
+default = ["lospec"]
+lospec = ["dep:ureq", "dep:serde_json", "dep:dirs"]
+tui = ["dep:ratatui", "dep:ratatui-image", "dep:crossterm"]
 
 [dependencies]
 # Image I/O and manipulation
@@ -29,6 +37,23 @@ thiserror = "2"
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 
+# Batch processing
+indicatif = "0.17"
+glob = "0.3"
+
+# Path expansion
+shellexpand = "3"
+
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Lospec API (optional)
+ureq = { version = "3", optional = true }
+serde_json = { version = "1", optional = true }
+dirs = { version = "6", optional = true }
+
+# TUI (optional)
+ratatui = { version = "0.30", optional = true }
+ratatui-image = { version = "10.0", optional = true, default-features = false, features = ["crossterm", "image-defaults"] }
+crossterm = { version = "0.28", optional = true }

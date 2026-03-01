@@ -9,7 +9,7 @@ use image::RgbaImage;
 use tracing::info;
 
 pub use aa_removal::AaRemovalConfig;
-pub use background::BackgroundConfig;
+pub use background::{BackgroundConfig, detect_border_color, is_bg_pixel};
 pub use downscale::DownscaleMode;
 pub use quantize::QuantizeConfig;
 

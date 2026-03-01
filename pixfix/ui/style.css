@@ -1,0 +1,633 @@
+/* Catppuccin Mocha palette */
+:root {
+  --rosewater: #f5e0dc;
+  --flamingo: #f2cdcd;
+  --pink: #f5c2e7;
+  --mauve: #cba6f7;
+  --red: #f38ba8;
+  --maroon: #eba0ac;
+  --peach: #fab387;
+  --yellow: #f9e2af;
+  --green: #a6e3a1;
+  --teal: #94e2d5;
+  --sky: #89dceb;
+  --sapphire: #74c7ec;
+  --blue: #89b4fa;
+  --lavender: #b4befe;
+  --text: #cdd6f4;
+  --subtext1: #bac2de;
+  --subtext0: #a6adc8;
+  --overlay2: #9399b2;
+  --overlay1: #7f849c;
+  --overlay0: #6c7086;
+  --surface2: #585b70;
+  --surface1: #45475a;
+  --surface0: #313244;
+  --base: #1e1e2e;
+  --mantle: #181825;
+  --crust: #11111b;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('data:font/woff2;charset=utf-8;base64,') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--base);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  border: 1px solid var(--surface2);
+}
+
+/* ── Title bar ── */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface2);
+  min-height: 28px;
+}
+
+.titlebar-title {
+  color: var(--mauve);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.titlebar-file {
+  color: var(--subtext0);
+  font-size: 12px;
+}
+
+/* ── Tabs ── */
+.tab-bar {
+  display: flex;
+  gap: 0;
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface2);
+}
+
+.tab {
+  padding: 6px 16px;
+  color: var(--overlay1);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  transition: color 0.1s;
+}
+
+.tab:hover {
+  color: var(--subtext1);
+}
+
+.tab.active {
+  color: var(--mauve);
+  border-bottom-color: var(--mauve);
+}
+
+.tab-key {
+  color: var(--overlay0);
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+/* ── Main content ── */
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-panel {
+  display: none;
+  height: 100%;
+}
+
+.tab-panel.active {
+  display: flex;
+}
+
+/* ── Preview tab ── */
+.preview-panel {
+  flex-direction: row;
+  gap: 0;
+}
+
+.image-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--surface2);
+}
+
+.image-pane:last-child {
+  border-right: none;
+}
+
+.pane-header {
+  padding: 4px 10px;
+  color: var(--subtext0);
+  font-size: 12px;
+  background: var(--mantle);
+  border-bottom: 1px solid var(--surface2);
+}
+
+.pane-header .dim {
+  color: var(--overlay0);
+  margin-left: 8px;
+  font-size: 11px;
+}
+
+.image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+  background: var(--crust);
+}
+
+.image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ── Welcome screen ── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--overlay1);
+  gap: 16px;
+}
+
+.welcome-logo {
+  font-size: 14px;
+  color: var(--mauve);
+  white-space: pre;
+  line-height: 1.2;
+}
+
+.welcome-guide {
+  max-width: 460px;
+  width: 100%;
+}
+
+.guide-section {
+  margin-bottom: 14px;
+}
+
+.guide-title {
+  color: var(--subtext1);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.guide-step {
+  color: var(--overlay1);
+  font-size: 12px;
+}
+
+.guide-num {
+  color: var(--overlay0);
+  margin-right: 2px;
+}
+
+.guide-body {
+  color: var(--overlay1);
+  font-size: 12px;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.guide-keys {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: var(--overlay1);
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.welcome-guide kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  background: var(--surface0);
+  border: 1px solid var(--surface2);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  margin-right: 1px;
+}
+
+/* ── Settings tab ── */
+.settings-panel {
+  flex-direction: row;
+}
+
+.settings-list {
+  width: 380px;
+  overflow-y: auto;
+  border-right: 1px solid var(--surface2);
+  padding: 8px 0;
+}
+
+.settings-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--crust);
+  padding: 8px;
+}
+
+.settings-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.setting-section {
+  padding: 4px 12px 2px;
+  color: var(--mauve);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 12px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.setting-row:hover {
+  background: var(--surface0);
+}
+
+.setting-row.focused {
+  background: var(--surface0);
+}
+
+.setting-row.focused .setting-indicator {
+  visibility: visible;
+}
+
+.setting-indicator {
+  color: var(--mauve);
+  margin-right: 6px;
+  visibility: hidden;
+  font-size: 12px;
+}
+
+.setting-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.setting-value {
+  color: var(--green);
+  font-size: 13px;
+  min-width: 100px;
+  text-align: right;
+}
+
+.setting-value.changed {
+  color: var(--yellow);
+}
+
+.setting-help {
+  padding: 2px 12px 6px 28px;
+  color: var(--overlay0);
+  font-size: 11px;
+  display: none;
+}
+
+.setting-row.focused + .setting-help {
+  display: block;
+}
+
+/* Inline editing */
+.setting-value input,
+.setting-value select {
+  background: var(--surface0);
+  color: var(--green);
+  border: 1px solid var(--mauve);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 1px 4px;
+  width: 90px;
+  text-align: right;
+  outline: none;
+}
+
+.setting-value select {
+  width: 100px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237f849c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+
+.setting-value select option {
+  background: var(--surface0);
+  color: var(--text);
+}
+
+/* ── Diagnostics tab ── */
+.diagnostics-panel {
+  flex-direction: row;
+}
+
+.diag-section {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.diag-section:first-child {
+  border-right: 1px solid var(--surface2);
+}
+
+.diag-title {
+  color: var(--mauve);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.diag-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  color: var(--subtext1);
+  font-size: 12px;
+}
+
+.diag-item .label {
+  color: var(--overlay1);
+}
+
+.diag-item .value {
+  color: var(--text);
+}
+
+/* Grid score bars */
+.grid-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.grid-bar-label {
+  width: 24px;
+  text-align: right;
+  color: var(--overlay1);
+}
+
+.grid-bar-track {
+  flex: 1;
+  height: 12px;
+  background: var(--surface0);
+  position: relative;
+}
+
+.grid-bar-fill {
+  height: 100%;
+  background: var(--blue);
+  transition: width 0.2s;
+}
+
+.grid-bar-fill.best {
+  background: var(--green);
+}
+
+.grid-bar-value {
+  width: 48px;
+  text-align: right;
+  color: var(--subtext0);
+  font-size: 11px;
+}
+
+/* Color histogram */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--surface2);
+  flex-shrink: 0;
+}
+
+.color-hex {
+  color: var(--subtext1);
+  width: 70px;
+}
+
+.color-percent {
+  color: var(--overlay1);
+  width: 48px;
+  text-align: right;
+}
+
+.color-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--surface0);
+}
+
+.color-bar-fill {
+  height: 100%;
+}
+
+/* ── Status bar ── */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 12px;
+  background: var(--mantle);
+  border-top: 1px solid var(--surface2);
+  font-size: 12px;
+  min-height: 24px;
+}
+
+.status-msg {
+  color: var(--subtext0);
+}
+
+.status-msg.processing {
+  color: var(--yellow);
+}
+
+.status-msg.error {
+  color: var(--red);
+}
+
+.status-msg.success {
+  color: var(--green);
+}
+
+.shortcut-bar {
+  display: flex;
+  gap: 12px;
+  color: var(--overlay0);
+  font-size: 12px;
+}
+
+.shortcut-bar kbd {
+  display: inline-block;
+  padding: 0 4px;
+  background: var(--surface0);
+  border: 1px solid var(--surface2);
+  color: var(--subtext1);
+  font-family: inherit;
+  font-size: 11px;
+  margin-right: 2px;
+}
+
+/* ── Processing overlay ── */
+.image-container,
+.settings-preview {
+  position: relative;
+}
+
+.processing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(17, 17, 27, 0.8);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+.processing-overlay.active {
+  display: flex;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--surface2);
+  border-top-color: var(--mauve);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.processing-overlay-text {
+  color: var(--overlay1);
+  font-size: 11px;
+}
+
+/* ── Drag and drop overlay ── */
+.drop-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 30, 46, 0.9);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border: 2px dashed var(--mauve);
+}
+
+.drop-overlay.active {
+  display: flex;
+}
+
+.drop-overlay-text {
+  color: var(--mauve);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--mantle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--overlay0);
+}

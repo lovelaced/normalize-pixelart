@@ -159,7 +159,7 @@ pub fn remove_background(
 }
 
 /// Check if a pixel matches the background color within tolerance.
-fn is_bg_pixel(
+pub fn is_bg_pixel(
     image: &RgbaImage,
     x: u32,
     y: u32,
@@ -178,7 +178,7 @@ fn is_bg_pixel(
 ///
 /// Samples all pixels on the image border, builds a histogram,
 /// and returns the most common color if it exceeds the threshold.
-fn detect_border_color(image: &RgbaImage, threshold: f32) -> Option<Rgba<u8>> {
+pub fn detect_border_color(image: &RgbaImage, threshold: f32) -> Option<Rgba<u8>> {
     let width = image.width();
     let height = image.height();
 
