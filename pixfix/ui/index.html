@@ -16,9 +16,11 @@
 
     <!-- Tab bar -->
     <div class="tab-bar">
-      <div class="tab active" data-tab="preview"><span class="tab-key">1</span>Preview</div>
-      <div class="tab" data-tab="settings"><span class="tab-key">2</span>Settings</div>
-      <div class="tab" data-tab="diagnostics"><span class="tab-key">3</span>Diagnostics</div>
+      <div class="tab active" data-tab="preview">Preview</div>
+      <div class="tab" data-tab="settings">Settings</div>
+      <div class="tab" data-tab="diagnostics">Diagnostics</div>
+      <div class="tab" data-tab="batch">Batch</div>
+      <div class="tab" data-tab="sheet">Sheet</div>
     </div>
 
     <!-- Tab panels -->
@@ -32,35 +34,56 @@
  | |_) | |>  <|  _| |>  &lt;
  | .__/|_/_/\_\_| |_/_/\_\
  |_|</div>
-          <div class="welcome-guide">
-            <div class="guide-section">
-              <div class="guide-title">Quick Start</div>
-              <div class="guide-steps">
-                <div class="guide-step"><span class="guide-num">1.</span> <span class="guide-text">Open an image &mdash; press <kbd>o</kbd> or drag &amp; drop a file</span></div>
-                <div class="guide-step"><span class="guide-num">2.</span> <span class="guide-text">Preview the result &mdash; original and processed side by side</span></div>
-                <div class="guide-step"><span class="guide-num">3.</span> <span class="guide-text">Tweak settings &mdash; switch to the Settings tab to adjust</span></div>
-                <div class="guide-step"><span class="guide-num">4.</span> <span class="guide-text">Save &mdash; press <kbd>s</kbd> to export the cleaned-up image</span></div>
+          <div class="welcome-subtitle">Cleans up AI-generated pixel art &mdash; snap to grid, remove AA fuzz, reduce to a palette, remove backgrounds.</div>
+          <div class="welcome-columns">
+            <!-- Left column -->
+            <div class="welcome-col">
+              <div class="guide-section">
+                <div class="guide-title">Quick Start</div>
+                <div class="guide-steps">
+                  <div class="guide-step"><span class="guide-num">1.</span> <span class="guide-text">Open an image &mdash; press <kbd>o</kbd> or drag &amp; drop</span></div>
+                  <div class="guide-step"><span class="guide-num">2.</span> <span class="guide-text">Preview the result &mdash; original and processed side by side</span></div>
+                  <div class="guide-step"><span class="guide-num">3.</span> <span class="guide-text">Tweak settings &mdash; switch to the Settings tab</span></div>
+                  <div class="guide-step"><span class="guide-num">4.</span> <span class="guide-text">Save &mdash; press <kbd>s</kbd> to export</span></div>
+                </div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-title">Tabs</div>
+                <div class="guide-steps">
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Preview</strong> &mdash; original vs processed side by side</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Settings</strong> &mdash; tune all pipeline parameters</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Diagnostics</strong> &mdash; grid scores and color histogram</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Batch</strong> &mdash; process multiple images at once</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Sheet</strong> &mdash; split sprite sheets, normalize, reassemble</span></div>
+                </div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-title">Keyboard</div>
+                <div class="guide-keygrid">
+                  <kbd>o</kbd><span>Open</span>
+                  <kbd>s</kbd><span>Save</span>
+                  <kbd>Space</kbd><span>Reprocess</span>
+                  <kbd>r</kbd><span>Reset settings</span>
+                  <kbd>Tab</kbd><span>Switch tabs</span>
+                  <kbd>&uarr; &darr; &larr; &rarr;</kbd><span>Navigate / adjust settings</span>
+                  <kbd>Esc</kbd><span>Back to preview</span>
+                </div>
               </div>
             </div>
-            <div class="guide-section">
-              <div class="guide-title">What pixfix does</div>
-              <div class="guide-body">Cleans up AI-generated pixel art by snapping pixels to a
-clean grid, removing anti-aliasing fuzz, reducing to a
-chosen color palette, and removing backgrounds.</div>
-            </div>
-            <div class="guide-section">
-              <div class="guide-title">Keyboard</div>
-              <div class="guide-keys">
-                <span><kbd>o</kbd> Open</span>
-                <span><kbd>s</kbd> Save</span>
-                <span><kbd>Space</kbd> Reprocess</span>
-                <span><kbd>r</kbd> Reset</span>
-              </div>
-              <div class="guide-keys">
-                <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs</span>
-                <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> Adjust</span>
-                <span><kbd>Enter</kbd> Type value</span>
-                <span><kbd>Ctrl+Q</kbd> Quit</span>
+            <!-- Right column -->
+            <div class="welcome-col">
+              <div class="guide-section">
+                <div class="guide-title">What you can do</div>
+                <div class="guide-steps">
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Snap to grid</strong> &mdash; auto-detects the pixel grid and aligns everything to it. Override the size and phase if needed.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Downscale</strong> &mdash; reduce to logical pixel resolution using center-weighted, majority-vote, or center-pixel sampling.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Remove anti-aliasing</strong> &mdash; clean up the soft blending that AI generators add between colors.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Reduce colors</strong> &mdash; snap to built-in palettes, any of 3000+ Lospec palettes, a .hex file, or auto-extract the best N colors.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Remove backgrounds</strong> &mdash; auto-detect the background color and make it transparent. Supports flood fill from edges or global removal.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Resize output</strong> &mdash; upscale sprites for game engines (2x, 3x&hellip;) or set exact dimensions.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Batch process</strong> &mdash; run the same pipeline on a folder of images at once.</span></div>
+                  <div class="guide-step"><span class="guide-num">&bull;</span> <span class="guide-text"><strong>Sprite sheets</strong> &mdash; split a sheet into tiles (fixed grid or auto-detect), normalize each tile, and reassemble.</span></div>
+                </div>
               </div>
             </div>
           </div>
@@ -109,6 +132,16 @@ chosen color palette, and removing backgrounds.</div>
           <div id="diag-histogram" style="margin-top:8px"></div>
         </div>
       </div>
+
+      <!-- Batch -->
+      <div class="tab-panel batch-panel" id="panel-batch">
+        <div id="batch-content"></div>
+      </div>
+
+      <!-- Sheet -->
+      <div class="tab-panel sheet-panel" id="panel-sheet">
+        <div id="sheet-content"></div>
+      </div>
     </div>
 
     <!-- Status bar -->
@@ -119,6 +152,7 @@ chosen color palette, and removing backgrounds.</div>
         <span><kbd>s</kbd> Save</span>
         <span><kbd>Space</kbd> Process</span>
         <span><kbd>r</kbd> Reset</span>
+        <span><kbd>Tab</kbd> Switch tabs</span>
       </div>
     </div>
 

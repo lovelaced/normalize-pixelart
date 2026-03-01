@@ -108,11 +108,6 @@ html, body {
   border-bottom-color: var(--mauve);
 }
 
-.tab-key {
-  color: var(--overlay0);
-  font-size: 11px;
-  margin-right: 4px;
-}
 
 /* ── Main content ── */
 .content {
@@ -185,11 +180,13 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   height: 100%;
   color: var(--overlay1);
   gap: 16px;
+  padding-top: 24px;
+  overflow-y: auto;
 }
 
 .welcome-logo {
@@ -199,9 +196,23 @@ html, body {
   line-height: 1.2;
 }
 
-.welcome-guide {
-  max-width: 460px;
+.welcome-subtitle {
+  color: var(--overlay1);
+  font-size: 12px;
+  text-align: center;
+  max-width: 480px;
+}
+
+.welcome-columns {
+  display: flex;
+  gap: 40px;
+  max-width: 720px;
   width: 100%;
+}
+
+.welcome-col {
+  flex: 1;
+  min-width: 0;
 }
 
 .guide-section {
@@ -240,16 +251,21 @@ html, body {
   line-height: 1.5;
 }
 
-.guide-keys {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  color: var(--overlay1);
-  font-size: 12px;
-  margin-bottom: 2px;
+.guide-text strong {
+  color: var(--subtext1);
+  font-weight: 600;
 }
 
-.welcome-guide kbd {
+.guide-keygrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  align-items: baseline;
+  color: var(--overlay1);
+  font-size: 12px;
+}
+
+.welcome-columns kbd {
   display: inline-block;
   padding: 1px 5px;
   background: var(--surface0);
@@ -257,7 +273,7 @@ html, body {
   color: var(--text);
   font-family: inherit;
   font-size: 11px;
-  margin-right: 1px;
+  border-radius: 2px;
 }
 
 /* ── Settings tab ── */
@@ -290,12 +306,16 @@ html, body {
 }
 
 .setting-section {
-  padding: 4px 12px 2px;
+  padding: 10px 12px 2px;
   color: var(--mauve);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.setting-section:first-child {
+  padding-top: 4px;
 }
 
 .setting-row {
@@ -344,14 +364,10 @@ html, body {
 }
 
 .setting-help {
-  padding: 2px 12px 6px 28px;
+  padding: 1px 12px 4px 32px;
   color: var(--overlay0);
   font-size: 11px;
-  display: none;
-}
-
-.setting-row.focused + .setting-help {
-  display: block;
+  line-height: 1.3;
 }
 
 /* Inline editing */
@@ -359,7 +375,7 @@ html, body {
 .setting-value select {
   background: var(--surface0);
   color: var(--green);
-  border: 1px solid var(--mauve);
+  border: 1px solid var(--surface2);
   font-family: inherit;
   font-size: 13px;
   padding: 1px 4px;
@@ -368,8 +384,17 @@ html, body {
   outline: none;
 }
 
+.setting-value input:focus {
+  border-color: var(--mauve);
+}
+
+.setting-value input.setting-inline-input-wide {
+  width: 140px;
+  text-align: left;
+}
+
 .setting-value select {
-  width: 100px;
+  width: 140px;
   text-align: left;
   cursor: pointer;
   -webkit-appearance: none;
@@ -383,6 +408,62 @@ html, body {
 .setting-value select option {
   background: var(--surface0);
   color: var(--text);
+}
+
+/* Clear button for nullable settings */
+.setting-clear {
+  color: var(--overlay0);
+  font-size: 11px;
+  margin-left: 6px;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.setting-clear:hover {
+  color: var(--red);
+}
+
+/* Inline selects that are always visible (not in edit mode) */
+.setting-value .setting-inline-select {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 1px 14px 1px 0;
+  width: 140px;
+  text-align: right;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%237f849c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+}
+
+.setting-value .setting-inline-select:hover,
+.setting-value .setting-inline-select:focus {
+  border-color: var(--surface2);
+  background-color: var(--surface0);
+}
+
+.setting-value.changed .setting-inline-select {
+  color: var(--yellow);
+}
+
+.setting-value .setting-inline-select option {
+  background: var(--surface0);
+  color: var(--text);
+}
+
+/* Boolean toggle value — clickable */
+.setting-value .setting-toggle {
+  cursor: pointer;
+}
+
+.setting-value .setting-toggle:hover {
+  text-decoration: underline;
 }
 
 /* ── Diagnostics tab ── */
@@ -547,6 +628,37 @@ html, body {
   margin-right: 2px;
 }
 
+/* ── Palette swatches ── */
+.palette-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 2px 12px 4px 28px;
+}
+
+.palette-swatch {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--surface2);
+  flex-shrink: 0;
+}
+
+.lospec-info {
+  padding: 2px 12px 4px 28px;
+  color: var(--subtext0);
+  font-size: 11px;
+}
+
+.lospec-error {
+  padding: 2px 12px 4px 28px;
+  color: var(--red);
+  font-size: 11px;
+}
+
+.lospec-loading {
+  color: var(--yellow);
+}
+
 /* ── Processing overlay ── */
 .image-container,
 .settings-preview {
@@ -630,4 +742,242 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--overlay0);
+}
+
+/* ── Batch tab ── */
+.batch-panel {
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 0;
+}
+
+.batch-section {
+  margin-bottom: 12px;
+}
+
+.batch-title {
+  color: var(--mauve);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.batch-desc {
+  color: var(--overlay1);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.batch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.batch-label {
+  color: var(--subtext1);
+  width: 60px;
+}
+
+.batch-value {
+  color: var(--text);
+  flex: 1;
+}
+
+.batch-btn {
+  background: var(--surface0);
+  color: var(--text);
+  border: 1px solid var(--surface2);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.batch-btn:hover:not(:disabled) {
+  background: var(--surface1);
+  border-color: var(--mauve);
+}
+
+.batch-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.batch-btn-primary {
+  border-color: var(--mauve);
+  color: var(--mauve);
+}
+
+.batch-btn-dim {
+  color: var(--overlay1);
+}
+
+.batch-file-list {
+  max-height: 160px;
+  overflow-y: auto;
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: var(--crust);
+  border: 1px solid var(--surface0);
+  font-size: 11px;
+}
+
+.batch-file {
+  color: var(--subtext0);
+  padding: 1px 0;
+}
+
+.batch-progress-info {
+  color: var(--subtext1);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.batch-progress-bar {
+  height: 14px;
+  background: var(--surface0);
+  border: 1px solid var(--surface1);
+  overflow: hidden;
+}
+
+.batch-progress-fill {
+  height: 100%;
+  background: var(--mauve);
+  transition: width 0.2s;
+}
+
+.batch-result-summary {
+  color: var(--green);
+  font-size: 13px;
+}
+
+.batch-result-failed {
+  color: var(--red);
+}
+
+.batch-errors {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: var(--crust);
+  border: 1px solid var(--surface0);
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.batch-error {
+  color: var(--red);
+  font-size: 11px;
+  padding: 1px 0;
+}
+
+/* ── Sheet tab ── */
+.sheet-panel {
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 0;
+}
+
+.sheet-section {
+  margin-bottom: 12px;
+}
+
+.sheet-title {
+  color: var(--mauve);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.sheet-desc {
+  color: var(--overlay1);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.sheet-mode-toggle {
+  display: flex;
+  gap: 0;
+}
+
+.sheet-mode-btn {
+  background: var(--surface0);
+  color: var(--overlay1);
+  border: 1px solid var(--surface2);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 16px;
+  cursor: pointer;
+}
+
+.sheet-mode-btn:first-child {
+  border-right: none;
+}
+
+.sheet-mode-btn.active {
+  background: var(--surface1);
+  color: var(--mauve);
+  border-color: var(--mauve);
+}
+
+.sheet-mode-btn:hover:not(.active) {
+  color: var(--text);
+}
+
+.sheet-setting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.sheet-setting-label {
+  color: var(--subtext1);
+  width: 120px;
+}
+
+.sheet-input {
+  background: var(--surface0);
+  color: var(--text);
+  border: 1px solid var(--surface2);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 6px;
+  width: 90px;
+  outline: none;
+}
+
+.sheet-input:focus {
+  border-color: var(--mauve);
+}
+
+.sheet-input:disabled {
+  opacity: 0.4;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-setting-hint {
+  color: var(--overlay0);
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.sheet-help {
+  color: var(--overlay0);
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 2px 0 8px 0;
+}
+
+.sheet-info {
+  color: var(--green);
+  font-size: 13px;
 }

@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.pixfix.app",
   "build": {
-    "frontendDist": "./ui"
+    "frontendDist": "./ui",
+    "beforeDevCommand": "bun build pixfix/ui/src/app.ts --outfile pixfix/ui/app.js --sourcemap=inline",
+    "beforeBuildCommand": "bun build pixfix/ui/src/app.ts --outfile pixfix/ui/app.js --minify"
   },
   "app": {
     "withGlobalTauri": true,
