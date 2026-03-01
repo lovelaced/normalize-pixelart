@@ -153,8 +153,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git tag "${{ inputs.tag }}"
-          git push origin "${{ inputs.tag }}"
+          TAG="${{ inputs.tag }}"
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG$"; then
+            echo "Tag $TAG already exists on remote, skipping creation"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - uses: actions/download-artifact@v4
         with:
