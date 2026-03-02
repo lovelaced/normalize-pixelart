@@ -66,7 +66,7 @@ pub fn majority_vote_downscale(
 ) -> Result<()> {
     let grid_size = state
         .grid_size
-        .expect("majority_vote_downscale requires grid_size to be set");
+        .ok_or_else(|| anyhow::anyhow!("majority_vote_downscale requires grid_size to be set"))?;
     let (phase_x, phase_y) = state.grid_phase.unwrap_or((0, 0));
     let image = &state.image;
     let width = image.width();
@@ -200,7 +200,7 @@ fn snap_blocks(
 
             let dominant = match weighted_freq
                 .iter()
-                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+                .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
             {
                 Some(entry) => entry.0,
                 None => continue,
@@ -267,7 +267,7 @@ fn block_center_weighted(
     // Pick the color with highest weighted vote
     weighted_freq
         .into_iter()
-        .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+        .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
         .map(|(color, _)| Rgba(color))
         .unwrap_or(Rgba([0, 0, 0, 0]))
 }

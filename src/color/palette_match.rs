@@ -21,7 +21,7 @@ pub fn snap_to_palette(image: &mut RgbaImage, palette_oklab: &[Oklab], palette_r
             .min_by(|(_, a), (_, b)| {
                 oklab_distance_sq(p_ok, **a)
                     .partial_cmp(&oklab_distance_sq(p_ok, **b))
-                    .unwrap()
+                    .unwrap_or(std::cmp::Ordering::Equal)
             })
             .map(|(i, _)| i)
             .unwrap();

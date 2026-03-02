@@ -89,8 +89,16 @@ pub fn assemble_sheet(
     let cols = max_col + 1;
     let rows = max_row + 1;
 
-    let out_w = margin * 2 + cols * tile_w + (cols.saturating_sub(1)) * spacing;
-    let out_h = margin * 2 + rows * tile_h + (rows.saturating_sub(1)) * spacing;
+    let out_w = (margin as u64) * 2 + (cols as u64) * (tile_w as u64) + (cols.saturating_sub(1) as u64) * (spacing as u64);
+    let out_h = (margin as u64) * 2 + (rows as u64) * (tile_h as u64) + (rows.saturating_sub(1) as u64) * (spacing as u64);
+    if out_w > u32::MAX as u64 || out_h > u32::MAX as u64 {
+        // Dimensions overflow u32 — return an empty image rather than panicking.
+        // Callers that need the error should use checked_assemble_sheet or
+        // validate inputs beforehand.
+        return RgbaImage::new(0, 0);
+    }
+    let out_w = out_w as u32;
+    let out_h = out_h as u32;
 
     let mut output = RgbaImage::from_pixel(out_w, out_h, Rgba([0, 0, 0, 0]));
 

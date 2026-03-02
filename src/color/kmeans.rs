@@ -118,7 +118,7 @@ pub fn nearest_centroid(color: Oklab, centroids: &[Oklab]) -> usize {
         .min_by(|(_, a), (_, b)| {
             oklab_distance_sq(color, **a)
                 .partial_cmp(&oklab_distance_sq(color, **b))
-                .unwrap()
+                .unwrap_or(std::cmp::Ordering::Equal)
         })
         .map(|(i, _)| i)
         .unwrap_or(0)

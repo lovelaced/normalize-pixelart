@@ -97,7 +97,7 @@ pub fn detect_grid(state: &mut PipelineState, config: &GridDetectConfig) -> Resu
 
     // Sort by score descending
     let mut sorted_coarse = coarse_results;
-    sorted_coarse.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+    sorted_coarse.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
 
     // Phase 2: Fine pass — scan phase offsets
     // For small candidates (≤ threshold): exhaustive phase scan (cheap, small phase space)
@@ -222,7 +222,7 @@ fn find_best_phase(
 
     results
         .into_iter()
-        .max_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
+        .max_by(|a, b| a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal))
         .map(|(px, py, _)| (px, py))
         .unwrap_or((0, 0))
 }

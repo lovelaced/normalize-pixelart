@@ -125,6 +125,10 @@ struct PaletteInfo {
 // Helpers
 // ---------------------------------------------------------------------------
 
+fn lock_state(state: &Mutex<AppState>) -> Result<std::sync::MutexGuard<'_, AppState>, String> {
+    state.lock().map_err(|e| format!("State lock poisoned: {}", e))
+}
+
 fn build_histogram_entries(img: &RgbaImage, top_n: usize) -> (Vec<ColorEntry>, usize) {
     let hist = ColorHistogram::from_image(img);
     let total = hist.total_pixels() as f64;
@@ -317,7 +321,7 @@ async fn open_image(path: String, state: State<'_, Mutex<AppState>>) -> Result<I
         histogram,
     };
 
-    let mut st = state.lock().unwrap();
+    let mut st = lock_state(&state)?;
     st.original = Some(img);
     st.processed = Some(processed);
     st.config = PipelineConfig::default();
@@ -329,7 +333,7 @@ async fn open_image(path: String, state: State<'_, Mutex<AppState>>) -> Result<I
 
 #[tauri::command]
 async fn process(pc: ProcessConfig, state: State<'_, Mutex<AppState>>) -> Result<ProcessResult, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let original = st.original.as_ref().ok_or("No image loaded")?.clone();
     drop(st);
 
@@ -349,7 +353,7 @@ async fn process(pc: ProcessConfig, state: State<'_, Mutex<AppState>>) -> Result
         histogram,
     };
 
-    let mut st = state.lock().unwrap();
+    let mut st = lock_state(&state)?;
     st.processed = Some(processed);
     st.config = config;
     st.diagnostics = Some(pipeline_state.diagnostics);
@@ -360,7 +364,7 @@ async fn process(pc: ProcessConfig, state: State<'_, Mutex<AppState>>) -> Result
 
 #[tauri::command]
 async fn get_image(which: String, state: State<'_, Mutex<AppState>>) -> Result<Vec<u8>, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let img = match which.as_str() {
         "original" => st.original.as_ref().ok_or("No image loaded")?,
         "processed" => st.processed.as_ref().ok_or("No processed image")?,
@@ -371,7 +375,7 @@ async fn get_image(which: String, state: State<'_, Mutex<AppState>>) -> Result<V
 
 #[tauri::command]
 async fn save_image(path: String, state: State<'_, Mutex<AppState>>) -> Result<(), String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let img = st.processed.as_ref().ok_or("No processed image to save")?;
     io::save_image(img, &PathBuf::from(&path)).map_err(|e| e.to_string())
 }
@@ -557,7 +561,7 @@ async fn sheet_preview(
     pad: Option<u32>,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<SheetPreviewResult, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let original = st.original.as_ref().ok_or("No image loaded")?.clone();
     drop(st);
 
@@ -618,7 +622,7 @@ async fn sheet_process(
     pc: ProcessConfig,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<SheetProcessResult, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let original = st.original.as_ref().ok_or("No image loaded")?.clone();
     drop(st);
 
@@ -654,7 +658,7 @@ async fn sheet_process(
                 .map(|t| (t.col, t.row, t.image))
                 .collect();
 
-            let mut st = state.lock().unwrap();
+            let mut st = lock_state(&state)?;
             st.processed = Some(result);
             st.sheet_tiles = Some(sheet_tiles);
 
@@ -682,7 +686,7 @@ async fn sheet_process(
                 .map(|t| (t.col, t.row, t.image))
                 .collect();
 
-            let mut st = state.lock().unwrap();
+            let mut st = lock_state(&state)?;
             st.processed = Some(result);
             st.sheet_tiles = Some(sheet_tiles);
 
@@ -694,7 +698,7 @@ async fn sheet_process(
 
 #[tauri::command]
 async fn sheet_save_tiles(output_dir: String, state: State<'_, Mutex<AppState>>) -> Result<u32, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let tiles = st.sheet_tiles.as_ref().ok_or("No sheet tiles available")?;
 
     let out_dir = PathBuf::from(&output_dir);
@@ -717,7 +721,7 @@ async fn sheet_generate_gif(
     fps: u32,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<String, String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let tiles = st
         .sheet_tiles
         .as_ref()
@@ -736,7 +740,7 @@ async fn sheet_export_gif(
     fps: u32,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<(), String> {
-    let st = state.lock().unwrap();
+    let st = lock_state(&state)?;
     let tiles = st
         .sheet_tiles
         .as_ref()
